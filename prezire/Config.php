@@ -72,8 +72,9 @@ final class Config
     /**
      * [$intervalType description]
      * @var string
+     * @see http://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html#function_date-add
      */
-    public $intervalType = '1 DAY';
+    public $intervalType = '1 WEEK';
     
     /**
      * [$tableNames description]

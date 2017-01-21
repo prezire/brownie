@@ -3,12 +3,6 @@ require_once 'prezire/DumpFileException.php';
 final class MySqlBackupManager
 {
   /**
-   * [$config description]
-   * @var [type]
-   */
-  private $config;
-
-  /**
    * [$tblNames description]
    * @var [type]
    */
@@ -51,11 +45,11 @@ final class MySqlBackupManager
    */
   public function __construct($appUsername, $appPassword)
   {
-    $this->config = new \prezire\Config();
+    $c = new \prezire\Config();
     if
     (
-      $appUsername !== $this->config->appUsername || 
-      $appPassword !== $this->config->appPassword
+      $appUsername !== $c->appUsername || 
+      $appPassword !== $c->appPassword
     )
     {
       throw new \Exception('Invalid application credentials.');
