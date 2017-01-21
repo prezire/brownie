@@ -4,37 +4,37 @@ final class MySqlBackupManager
 {
   /**
    * [$tblNames description]
-   * @var [type]
+   * @var array
    */
   private $tblNames;
 
   /**
    * [$projDir description]
-   * @var [type]
+   * @var string
    */
   private $projDir;
 
   /**
    * [$dbProps description]
-   * @var [type]
+   * @var string
    */
   private $dbProps;
 
   /**
    * [$tblUniqueColIdent description]
-   * @var [type]
+   * @var string
    */
   private $tblUniqueColIdent;
 
   /**
    * [$mySqlDumpExecPath description]
-   * @var [type]
+   * @var string
    */
   private $mySqlDumpExecPath;
 
   /**
    * [$gitExecPath description]
-   * @var [type]
+   * @var string
    */
   private $gitExecPath;
 
@@ -66,8 +66,9 @@ final class MySqlBackupManager
   }
 
   /**
-   * Look for errors on the first line on the dumped file.
+   * Looks for errors on the first line of the dumped file.
    * [checkDumpedFileData description]
+   * @access private
    * @param  [type] $file [description]
    * @return [type]       [description]
    */
@@ -80,16 +81,17 @@ final class MySqlBackupManager
     $i = strpos($line, $err);
     if($i !== false)
     {
-      //An error was found.
-      //Reset any prev Git ops.
+      //An error was found. 
+      //Don't delete the file. Reset any prev Git ops instead.
       $this->pushRepo(null, false);
-      //Auto-exit esp to prevent executing any future Git ops.
+      //Also auto-exit esp to prevent executing further Git ops.
       throw new \prezire\DumpFileException($line);
     }
   }
   
   /**
    * [createFile description]
+   * @access private
    * @param  [type] $filename [description]
    * @return [type]           [description]
    */
@@ -103,12 +105,13 @@ final class MySqlBackupManager
   }
 
   /**
-   * [execSystem description]
+   * [execCmd description]
+   * @access private
    * @param  [type] $msg     [description]
    * @param  [type] $command [description]
    * @return [type]          [description]
    */
-  private function execSystem($msg, $command)
+  private function execCmd($msg, $command)
   {
     echo $msg, system($command), '.<br />';
   }
@@ -218,10 +221,9 @@ final class MySqlBackupManager
     {
       //Append table name as a file's name.
       $file = $this->createFile($tbl);
-      //
       $sPwd = empty($password) ? '' : "-p{$password}";
       $sDump = "{$mySqlDumpPath} --skip-add-drop-table --no-create-info --skip-comments -u {$username} {$sPwd} {$dbName} {$tbl} --where=\"{$uniqueColIdent} > DATE_SUB(NOW(), INTERVAL {$intervalType})\" > {$file} 2>&1";
-      $this->execSystem("Dumping: {$sDump}", $sDump);
+      $this->execCmd("Dumping: {$sDump}", $sDump);
       $this->checkDumpedFileData($file);
       echo '<br />';
     }
@@ -240,18 +242,17 @@ final class MySqlBackupManager
     //Only perform git ops if there's a .git folder.
     if(file_exists($projDir . '/.git'))
     {
-      //
       if($success === true)
       {
         $sGit = $this->getGitExecPath() . '/git';
         $date = date('YmdHis');
-        $this->execSystem('Repo add: ', "{$sGit} add .");
-        $this->execSystem('Repo commit: ', "{$sGit} commit -m 'Incremental DB data backup {$date}.'");
-        $this->execSystem('Repo push: ', "{$sGit} push -u origin {$branch} 2>&1");
+        $this->execCmd('Repo add: ', "{$sGit} add .");
+        $this->execCmd('Repo commit: ', "{$sGit} commit -m 'Incremental DB data backup {$date}.'");
+        $this->execCmd('Repo push: ', "{$sGit} push -u origin {$branch} 2>&1");
       }
       else
       {
-        $this->execSystem('Repo reset: ', "{$sGit} reset 2>&1"); 
+        $this->execCmd('Repo reset: ', "{$sGit} reset 2>&1"); 
       }
     }
   }
